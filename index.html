@@ -1,0 +1,129 @@
+﻿import { useState, useEffect, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { MessageSquare, Loader2, ArrowDown } from "lucide-react";
+import { motion } from "framer-motion";
+
+export default function ChatApp() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showBackButton, setShowBackButton] = useState(false);
+  const chatRef = useRef(null);
+  const botImage = "https://cdn.discordapp.com/attachments/1172514189290524754/1343692029166616576/Screenshot_2024-09-08_204721.png?ex=67c02c78&is=67bedaf8&hm=2283a280edb4d62f278af5449b9b400afd4747b30cd617ed5fe4dec4ad9b847a&";
+  const botBio = "Your AI assistant, here to help you!";
+
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (chatRef.current) {
+        setShowBackButton(chatRef.current.scrollTop < chatRef.current.scrollHeight - chatRef.current.clientHeight - 50);
+      }
+    };
+    chatRef.current?.addEventListener("scroll", handleScroll);
+    return () => chatRef.current?.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const newMessages = [...messages, { text: input, sender: "user" }];
+    setMessages(newMessages);
+    setInput("");
+    setLoading(true);
+
+    setTimeout(() => {
+      setMessages([...newMessages, { text: "", sender: "bot", loading: true }]);
+    }, 500);
+
+    setTimeout(() => {
+      simulateBotResponse(newMessages);
+    }, 1000);
+  };
+
+  const simulateBotResponse = (newMessages) => {
+    const botReply = "Hello! How can I help you today?".split(" ");
+    let currentText = "";
+
+    const interval = setInterval(() => {
+      if (botReply.length === 0) {
+        clearInterval(interval);
+        setLoading(false);
+        return;
+      }
+      currentText += (currentText ? " " : "") + botReply.shift();
+      setMessages([...newMessages, { text: currentText, sender: "bot" }]);
+    }, 100);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  };
+
+  const scrollToBottom = () => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  };
+
+  return (
+    <div className="flex flex-col w-full h-screen bg-gradient-to-b from-purple-900 to-blue-900 text-white">
+      <div className="flex items-center gap-3 p-4 bg-gray-800 shadow-md">
+        <img src={botImage} className="w-10 h-10 rounded-full" alt="AI" />
+        <span className="text-lg font-semibold">AI Chat</span>
+      </div>
+      <div className="flex flex-col items-center py-6">
+        <img src={botImage} className="w-20 h-20 rounded-full" alt="AI Logo" />
+        <p className="text-gray-400 mt-2 text-sm">{botBio}</p>
+      </div>
+      <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-4 relative">
+        {messages.map((msg, index) => (
+          <motion.div 
+            key={index}
+            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.15 }}
+          >
+            {msg.sender === "bot" && (
+              <img src={botImage} className="w-8 h-8 rounded-full mr-2" alt="AI" />
+            )}
+            <div className="bg-gray-700 rounded-lg px-4 py-2 max-w-xs">
+              {msg.loading ? (
+                <Loader2 className="animate-spin w-5 h-5" />
+              ) : (
+                msg.text
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+      {showBackButton && (
+        <button 
+          className="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-black text-white px-3 py-1 rounded-md shadow-md"
+          onClick={scrollToBottom}
+        >
+          <ArrowDown className="w-5 h-5" /> Back
+        </button>
+      )}
+      <div className="p-4 flex items-center gap-2 bg-gray-800">
+        <Input
+          className="flex-1 bg-gray-700 text-white border-none focus:ring-0"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
+        />
+        <Button onClick={sendMessage} disabled={loading}>
+          {loading ? "Stop" : <MessageSquare />}
+        </Button>
+      </div>
+    </div>
+  );
+}
