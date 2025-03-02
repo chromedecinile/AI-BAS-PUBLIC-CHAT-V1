@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -81,8 +81,7 @@
         }
     };
 
-    const API_KEY = process.env.API_KEY;
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    // API calls are handled by the server
 
     const sendMessage = async () => {
     if (!input.trim() || isBotTyping) return;
@@ -93,7 +92,7 @@
     setIsBotTyping(true);
 
     try {
-        const response = await fetch("http://localhost:5000/api/chat", {  // Calls your backend, NOT Google API
+        const response = await fetch("/api/chat", {  // Calls your backend with relative URL
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: input })
@@ -128,12 +127,12 @@
     return (
         <div className="flex flex-col w-full h-screen">
             <div className="flex items-center gap-3 p-4 bg-gray-800 shadow-md text-white">
-				<img src={botImage} className="w-10 h-10 rounded-full" alt="AI" />
+				<img src="ai-botlogo.png" className="w-10 h-10 rounded-full" alt="AI" />
                 <span className="text-lg font-semibold">BAS - AI Chatbot</span>
             </div>
 			<div className="flex flex-col items-center py-6 text-white">
-                <img src={botImage} className="w-20 h-20 rounded-full" alt="AI Logo" />
-                <p className="text-gray-300 mt-2 text-sm">{botBio}</p>
+                <img src="ai-botlogo.png" className="w-20 h-20 rounded-full" alt="AI Logo" />
+                <p className="text-gray-300 mt-2 text-sm">🤖 Your Roblox AI assistant. Drop a request, I got you with scripts!</p>
             </div>
 
             <div 
@@ -143,7 +142,7 @@
             >
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} items-top gap-2`}>
-						{msg.sender === "bot" && <img src={botImage} className="w-8 h-8 rounded-full" alt="Bot" />}
+						{msg.sender === "bot" && <img src="ai-botlogo.png" className="w-8 h-8 rounded-full" alt="Bot" />}
 
                         <span className="text-white">{msg.sender === "bot" ? renderTextWithAnimation(msg.text) : msg.text}</span>
 	
@@ -179,5 +178,4 @@ ReactDOM.createRoot(document.getElementById("root")).render(<ChatApp />);
     </script>
 </body>
 </html>
-
 
